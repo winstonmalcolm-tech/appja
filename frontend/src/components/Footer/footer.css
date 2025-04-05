@@ -1,0 +1,17 @@
+
+.footer_container {
+    margin-top: 8rem;
+    width: 100%;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: sticky;
+    left: 0;
+    bottom: 0;
+}
+
+.footer_container img {
+    height: 100%;
+    width: 90px;
+}

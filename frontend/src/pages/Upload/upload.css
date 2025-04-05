@@ -1,0 +1,128 @@
+.upload_container {
+    margin-top: 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upload_return_container {
+    flex: 1;
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.help_btn {
+    cursor: pointer;
+}
+
+
+.upload_return_container a {
+    padding: 10px;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+}
+
+.upload_form_container {
+    flex: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.upload_form_container form {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding-top: 20px;
+}
+
+.upload_form_container form input {
+    width: 60%;
+    height: 60px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid gray;
+    border-radius: 20px;
+    transition: .5s;
+}
+
+
+.upload_form_container form select {
+    width: 60%;
+    height: 60px;
+    background: var(--color-surface-mixed-a0);
+    border: 1px solid gray;
+    border-radius: 20px;
+    padding: 10px 0px;
+    transition: .5s;
+}
+
+.upload_form_container form textarea {
+    width: 60%;
+    height: 150px;
+    padding: 10px;
+    resize: none;
+    background: transparent;
+    border: 1px solid gray;
+    border-radius: 20px;
+    transition: .5s;
+}
+
+.upload_form_container form label {
+    background-color: rgb(100, 55, 100);
+    padding: 10px;
+    width: 20%;
+    text-align: center;
+    cursor: pointer;
+}
+
+.upload_form_container form button {
+    width: 50%;
+    height: 60px;
+    background-color: purple;
+    background-color: transparent;
+    border: 1px solid gray;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .5s ease;
+}
+
+.upload_form_container form button:hover {
+    border: none;
+    background-color: rgb(148, 48, 148);
+}
+
+.upload_form_container form input:focus, .upload_form_container form select:focus, .upload_form_container form textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+@media screen and (max-width: 768px) {
+    .upload_form_container form input {
+        width: 100%;
+    }
+
+    .upload_form_container form select {
+        width: 100%;
+    }
+
+    .upload_form_container form textarea {
+        width: 100%;
+    }
+
+    .upload_form_container form label {
+        width: 80%;
+    }
+}

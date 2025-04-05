@@ -1,0 +1,255 @@
+.home_container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+}
+
+.home_hero {
+    display: flex;
+    height: calc(100vh - 120px);
+    width: 100%;
+}
+
+.home_left {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.home_left h1{
+    font-size: 55px;
+}
+
+.home_left a {
+    text-decoration: none;
+    border: 1px solid var(--color-primary);
+    padding: 15px 20px;
+    border-radius: 20px;
+    width: 250px;
+    text-align: center;
+    transition: all .5s ease;
+}
+
+.home_left a:hover {
+    background-color: var(--color-primary);
+    transform: scale(1.2);
+    
+}
+
+.home_right {
+    flex: 1;
+    display: flex;
+    align-items: start;
+    justify-content: center;
+}
+
+.home_right img{
+    width:  100%;
+    height: 100%;
+    object-fit: none;
+}
+
+.home_info h3 {
+    font-size: 50px;
+}
+
+.home_info p {
+    font-size: 20px;
+    line-height: 50px;
+}
+
+
+.home_info_inner_section {
+    display: flex;
+}
+
+.home_info_inner_section div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.home_info_inner_section div:first-child {
+    align-items: flex-start;
+    gap: 40px;
+}
+
+.home_info_inner_section div:first-child span {
+    font-size: 50px;
+    color: var(--color-primary);
+}
+
+.home_info_inner_section div:nth-child(2) img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    animation: suttle_movement 1s infinite forwards alternate-reverse;
+}
+
+.home_why_container {
+    display: flex;
+}
+
+.img,  .accordian_list{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.home_why_container div:first-child img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    animation-name: rotate;
+    animation-iteration-count: infinite;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+}
+
+.home_why_container div:nth-child(2) h3 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    margin-top: 5rem;
+}
+
+
+.home_why_container div:nth-child(2) span {
+    font-size: 50px;
+    color: var(--color-primary)
+}
+
+.home_see_price_container {
+    margin: 40px 0px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: capitalize;
+    height: fit-content;
+}
+
+.home_see_price_container a {
+    text-decoration: none;
+    width: 30%;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid gray;
+    transition: background .5s ease-in-out;
+    text-align: center;
+}
+
+.home_see_price_container a:hover {
+    border: none;
+    background-color: #e20fc6d3;
+}
+
+
+
+@keyframes suttle_movement {
+    0% {
+        transform: translateY(0px);
+    }
+
+    100% {
+        transform: translateY(20px);
+    }
+}
+
+@media screen and (max-width: 1034px) {
+    .home_hero {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .home_left {
+        flex: none;
+        justify-content: center;
+        align-items: center;
+        height: fit-content;
+    }
+
+    .home_left h1 {
+        font-size: 35px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .home_right {
+        flex: none;
+        justify-content: start;
+        align-items: center;
+        height: fit-content;
+    }
+
+    .home_right img {
+        object-fit: contain;
+    }
+
+    .home_info_inner_section {
+        flex-direction: column;
+    }
+
+    .home_info_inner_section div:nth-child(2) {
+        width: 100%;
+        min-height: 450px;
+    }
+
+    .home_info_inner_section div:nth-child(2) img {
+        height: 40%;
+        width: 40%;
+    }
+
+    .home_why_container {
+        flex-direction: column;
+    }
+
+    .home_why_container div:nth-child(2) h3 {
+        text-align: center;
+    }
+
+    .accordian_list div{
+        width: 90%;
+    }
+
+    .home_see_price_container a {
+        width: 70%;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .home_left h1{
+        font-size: 24px;
+    }
+
+    .home_info_inner_section div:nth-child(2) {
+        min-height: 400px;
+    }
+
+    .home_info_inner_section div:nth-child(2) img {
+        height: 80%;
+        width: 80%;
+    }
+
+    .home_info_inner_section div:first-child h3 {
+        font-size: 40px;
+        text-align: center;
+    }
+
+    .home_info_inner_section div:first-child p {
+        text-align: justify;
+    }
+}
+
+
+

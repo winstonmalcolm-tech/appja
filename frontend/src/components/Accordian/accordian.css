@@ -1,0 +1,46 @@
+.accordian_card {
+    border-image: linear-gradient(to right, var(--color-primary) 0%, #3a4ed5 100%) 1;
+    border-width: 2px;
+    border-style: solid;
+    padding: 10px 10px;
+    width: 70%;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    
+    transition: all 2s ease;
+}
+
+.accordian_head{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.title {
+    flex: 5;
+}
+
+.expand_btn {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.content {
+    max-height: 0;
+    overflow: hidden;
+    line-height: 30px;
+    display: none;
+    color: var(--color-surface-mixed-a50);
+    transition: all 5s cubic-bezier(0,1,0,1);
+}
+
+.content.show {
+    max-height: 9999px;
+    display: block;
+    transition: all 5s cubic-bezier(0,1,0,1);
+}
+

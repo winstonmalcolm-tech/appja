@@ -1,0 +1,10 @@
+.pricing_container {
+    min-height: calc(100vh - 210px);
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+

@@ -1,0 +1,139 @@
+.profile_container {
+    height: calc(100vh - 120px);
+}
+
+.profile_header {
+    width: 95%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2rem;
+    background-color: rgb(167, 40, 40);
+}
+
+.profile_header_left {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+
+.profile_header_right {
+    height: 200px;    
+    width: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items:flex-start;
+}
+
+.profile_header_right button {
+    width: 150px;
+    background-color: transparent;
+    border-radius: 20px;
+    border: 1px solid gray;
+    height: 40px;
+    cursor: pointer;
+    transition: all .5s;
+}
+
+.profile_header_right button:hover {
+    border-color: #fff;
+}
+
+.profile_avatar_container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(to right,var(--color-primary), blue);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile_avatar_container h3 {
+    font-size: 50px;
+    font-family: var(--tilt-font);
+
+}
+
+.profile_avatar_container input {
+    display: none;
+}
+
+.profile_avatar_container label {
+    position: absolute;
+    left: 7.5rem;
+    top: 16.5rem;
+    background-color: #aaa;
+    color: #000;
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: .5s;
+}
+
+.profile_avatar_container img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile_avatar_container label:hover {
+    background-color: #ffc;
+}
+
+.profile_subtitle {
+    margin-top: 20px;
+    padding-left: 20px;
+}
+
+.profile_subtitle h1, .profile_subtitle h3 {
+    font-family: var(--tilt-font);
+}
+
+.profile_subtitle h1 {
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+
+.profile_subtitle h3 {
+    color: #ccc;
+}
+
+.profile_subtitle button {
+    margin-top: 20px;
+    width: 150px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid gray;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .5s ease;
+}
+
+.profile_subtitle button:hover {
+    border-color: #fff;
+}
+
+.profile_app_display {
+    margin-top: 8rem;
+}
+
+.profile_app_display_header {
+    margin-bottom: 4rem;
+}
+
+.profile_app_display_header h1 {
+    text-transform: uppercase;
+    font-size: 20px;
+    font-style: italic;
+    letter-spacing: 1px;
+}

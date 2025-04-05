@@ -1,0 +1,166 @@
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 120px;
+    width: 100%;
+    font-size: 30px;
+}
+
+.navbar_active {
+    text-decoration: none;
+    padding-bottom: 10px;
+    border-bottom: 2px solid;
+    border-bottom-color: var(--color-primary);
+    transition: all .3s ease;
+}
+
+.navbar_unactive {
+    text-decoration: none;
+}
+
+.navbar_left {
+    flex: 1;
+}
+
+.navbar_left img {
+    width: 100px;
+    height: 100%;
+    object-fit: contain;
+}
+
+.middle {
+    flex: 1;
+}
+
+.middle ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    width: 100%;
+}
+
+.middle ul li {
+    list-style: none;
+    font-size: 17px;
+}
+
+.navbar_right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    height: 100%;
+}
+
+.sidebar_icon_container {
+    flex: 1;
+    display: flex;
+    display: none;
+}
+
+.navbar_right a, .navbar_right button {
+    background-color: transparent;
+    padding: 10px 15px;
+    border: 1px solid gray;
+    border-radius: 10px;
+    transition: all .5s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.navbar_right a:hover {
+    border-color: var(--color-primary);
+    
+    transform: scale(1.3);
+    margin: 0px 10px;
+}
+
+.navbar_right button:hover {
+    border-color: var(--color-primary);
+    
+    transform: scale(1.3);
+    margin: 0px 10px;
+}
+
+.side_bar {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    transition: .5s ease-out;
+    width: 80%;
+    height: 100dvh;
+    z-index: 10;
+    background-color: rgb(59, 15, 59);
+    box-shadow: -5px 0 5px rgba(0,0,0,0.25);
+}
+
+.side_bar ul {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.side_bar ul a {
+    min-width: 100%;
+    text-align: left;
+    font-size: 30px;
+}
+
+.side_bar ul a li, .side_bar ul button  {
+    width: 100%;
+    text-align: left;
+    font-size: 30px;
+}
+
+.side_bar_active {
+    font-size: x-large;
+}
+
+.show {
+    right: 0;
+}
+
+@media screen and (max-width: 1034px) {
+
+    .sidebar_icon_container {
+        flex: none;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        width: 50%;
+    }
+
+    .side_bar ul li, .side_bar ul button {
+        padding-left: 20px;
+        padding-top: 20px;
+    }
+
+    .navbar_right {
+        display: none;
+    }
+
+    .middle {
+        display: none;
+    }
+
+    .navbar_left {
+        flex: none;
+        width: 50%;
+    }
+
+    .side_bar {
+        padding-left: 10px;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .side_bar {
+        width: 100%;
+    }
+}
+
+

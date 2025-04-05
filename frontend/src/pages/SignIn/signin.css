@@ -1,0 +1,114 @@
+.signin_container {
+    height: calc(100vh - 120px);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 4rem;
+}
+
+.signin_content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 40%;
+    gap: 50px;
+}
+
+.signin_heading h1 {
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.signin_heading h5{
+    color: #aaa;
+}
+
+.signin_heading a{
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.signin_input {
+    height: 55px;
+    width: 100%;
+    background-color: transparent;
+    border: 1.5px solid gray;
+    border-radius: 5px;
+    outline: none;
+    padding-left: 5px;
+    transition: border .5s ease;
+    margin-bottom: 20px;
+}
+
+.signin_form {
+    width: 100%;
+}
+
+.signin_form form input:focus {
+    border-color: var(--color-primary);
+}
+
+.signin_password_container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 55px;
+    width: 100%;
+    border: 1.5px solid gray;
+    border-radius: 5px;
+    padding: 0px 5px;
+    transition: border .5s ease;
+    margin-bottom: 20px;
+}
+
+.signin_password_container_active {
+    border-color: var(--color-primary);
+    transition: all .5s ease;
+}
+
+.signin_password_container svg{
+    cursor: pointer;
+}
+
+.signin_password_container input {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    height: 100%;
+    width: 100%;
+}
+
+.signin_form button {
+    width: 100%;
+    height: 60px;
+    background-color: purple;
+    border: none;
+    color: white;
+    outline: none;
+    cursor: pointer;
+    transition: all .5s ease;
+}
+
+.signin_form button:hover {
+    background-color: rgb(148, 48, 148);
+}
+
+@media screen and (max-width: 650px) {
+
+    .signin_container {
+        margin-top: 2rem;
+    }
+
+    .signin_content {
+        width: 100%;
+    }
+
+    .signin_heading {
+        text-align: center;
+    }
+
+    .signin_heading h1 {
+        font-size: 37px;
+    }
+}
+
