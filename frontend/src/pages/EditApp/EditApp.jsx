@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import {useEffect, useState} from 'react'
 import { useParams, useNavigate } from "react-router-dom";
 import useAxios from "../../utils/useAxios";
 import { CircleLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
-import BASE_SERVER_URL from '../../constants/constants';
 
 
 const EditApp = () => {
@@ -94,7 +93,7 @@ const EditApp = () => {
     const deleteAppHandler = async () => {
         try {
             setUpdating(true);
-            const response = await api.delete(`${BASE_SERVER_URL}/app/remove/${appId}`);
+            const response = await api.delete(`${import.meta.env.VITE_BASE_SERVER_URL}/app/remove/${appId}`);
 
             toast.info(response.data.message);
             

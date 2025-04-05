@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { IoMdCheckmark } from "react-icons/io";
 import "./pricecard.css";
 import useAxios from '../../utils/useAxios';
-import BASE_SERVER_URL from '../../constants/constants';
 
 const PriceCard = ({ data, purchase, isCurrentPlan}) => {
   const [loading, setLoading] = useState(false);
@@ -15,7 +14,7 @@ const PriceCard = ({ data, purchase, isCurrentPlan}) => {
 
       setLoading(true);
       const response = await api.post(
-        BASE_SERVER_URL + "/paypal/pay", 
+        import.meta.env.VITE_BASE_SERVER_URL + "/paypal/pay", 
         {
           "planType": data.plan,
           "cost": data.cost,
