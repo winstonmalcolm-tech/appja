@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer } from 'react';
+import { useContext, useEffect, useReducer } from 'react';
 import { toast } from "react-toastify";
 import { useNavigate, Link } from 'react-router-dom';
 import "../../index.css";
@@ -50,7 +50,7 @@ const Profile = () => {
 
     const [state, dispatch] = useReducer(userReducer, INITIAL_STATE);
     const navigate = useNavigate();
-    const { tokens, logout } = useContext(TokenContext);
+    const { logout } = useContext(TokenContext);
 
     const api = useAxios()
 

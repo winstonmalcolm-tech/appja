@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import {format} from 'date-fns';
 import { FaShareAlt } from "react-icons/fa";
 
-const socket = io.connect(`${import.meta.env.REACT_APP_SERVER_BASE_URL}`);
+const socket = io.connect(`${import.meta.env.VITE_BASE_SERVER_URL}`);
 
 
 const INITIAL_STATE = {

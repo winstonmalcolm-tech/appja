@@ -33,7 +33,7 @@ const SignIn = () => {
 
       setLoading(true);
 
-      const response = await axios.post(`${import.meta.env.BASE_SERVER_URL}/auth/login`, {email: identifier, password: password});
+      const response = await axios.post(`${import.meta.env.VITE_BASE_SERVER_URL}/auth/login`, {email: identifier, password: password});
 
       toast.success(`${response.data.message}`);
 

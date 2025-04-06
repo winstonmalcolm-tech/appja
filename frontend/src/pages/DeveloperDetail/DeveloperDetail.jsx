@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from "react-toastify";
 import useAxios from '../../utils/useAxios';
@@ -53,7 +53,7 @@ const DeveloperDetail = () => {
                 <h3 className="font-bold text-lg mb-5">Socials</h3>
                 
                 <dl>
-                  {data.socials.map((social, i) => {
+                  {data.socials.map((social) => {
                     if (social.social_url != "") {
                       return (
                         <>
