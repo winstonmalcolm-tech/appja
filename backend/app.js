@@ -6,9 +6,10 @@ const path = require("path");
 const cors = require("cors");
 
 app.use(cors({
-    origin: "*"
+    origin: "*",
 }))
-//app.options('*', cors());
+
+app.options('*', cors());
 
 const port = process.env.PORT || 8000;
 

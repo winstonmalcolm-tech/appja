@@ -31,7 +31,7 @@ const useAxios = () => {
         //If token is not expired continue with the request
         if (!isExpired) return req;
     
-        const response = await axios.post("http://localhost:3000/auth/refresh_token", {refreshToken: tokens.refreshToken});
+        const response = await axios.post(`${import.meta.env.VITE_BASE_SERVER_URL}/auth/refresh_token`, {refreshToken: tokens.refreshToken});
 
         if (response.status == 403) {
             return req;
