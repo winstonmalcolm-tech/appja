@@ -138,7 +138,7 @@ const AppDetail = () => {
 
   const appDetail = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.REACT_APP_SERVER_BASE_URL}/app/${id}`);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_SERVER_URL}/app/${id}`);
       
 
       setData(response.data);
