@@ -45,12 +45,12 @@ const upload = async (req, res, next) => {
 
         const apk_size = Math.ceil(megabyteConversion(app_size));
 
-        if (planType == "Hobbyist" && app_size > 100) {
+        if (planType == "Hobbyist" && apk_size > 100) {
             res.status(400);
             throw new Error("App size exceeds what current plan offers");
         }
 
-        if (planType == "Standard" && app_size > 200) {
+        if (planType == "Standard" && apk_size > 200) {
             res.status(400);
             throw new Error("App size exceeds what current plan offers");
         }

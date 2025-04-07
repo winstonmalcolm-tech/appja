@@ -1,6 +1,6 @@
 
 const byteToMegabyte = (byte) => {
-    return parseFloat((byte / 1048576).toFixed(2));
+    return byte * 0.00000095367432;
 }
 
 module.exports = byteToMegabyte;
