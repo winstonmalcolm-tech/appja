@@ -43,11 +43,6 @@ const upload = async (req, res, next) => {
             throw new Error("Please enter all fields");
         }
 
-        if (!req.files.images) {
-            res.status(400);
-            throw new Error("App images were not selected");
-        }    
-
         const apk_size = Math.ceil(megabyteConversion(app_size));
 
         if (planType == "Hobbyist" && app_size > 100) {
