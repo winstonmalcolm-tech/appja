@@ -7,6 +7,10 @@ import useAxios from "../../utils/useAxios";
 import { useNavigate } from "react-router-dom";
 import { CircleLoader } from 'react-spinners';
 import { IoIosHelpCircle } from "react-icons/io";
+import {createClient} from "@supabase/supabase-js";
+import { generateRandomName } from "../../utils/generateRandomName";
+
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 const Upload = () => {
 
@@ -48,22 +52,52 @@ const Upload = () => {
 
             if (images.length > 4) {
                 toast.info("Only the first 4 images will be uploaded");
-             }
+            }
+
+
+            setLoading(true);
+
+            let {data, error} = await supabase.storage.from("test").upload(`apps/${generateRandomName()}`, app, {cacheControl: '3600', upsert: false});
+
+            if (error) {
+                throw new Error(error.message);
+            }
             
+            const appId = data.id;
+            const appUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`;
+
+            ({data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, icon, {cacheControl: '3600', upsert: false}));
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            const iconUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`
+            
+
+            const imagesTemp = [];
+
+            for (let i = 0; i < images.length; i++) {
+                ({data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, images[i], {cacheControl: '3600', upsert: false}));
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                let imageUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`
+                imagesTemp.push({imageUrl, id: data.id});
+            }
+
             const formData = new FormData();
     
             formData.append("app_name", appName);
             formData.append("app_category", category);
             formData.append("app_description", description);
-            formData.append("app", app);
-            
-            for (let i = 0; i < images.length; i++) {
-                formData.append('images', images[i]); 
-            }
-            
-            formData.append("icon", icon);
-
-            setLoading(true);
+            formData.append("app_url", appUrl);
+            formData.append("icon_url", iconUrl);
+            formData.append("app_size", app.size);
+            formData.append("supabase_app_id", appId);
+            formData.append("imagesArr", JSON.stringify(imagesTemp));
 
             const response = await api.post(
                 "app/upload", 

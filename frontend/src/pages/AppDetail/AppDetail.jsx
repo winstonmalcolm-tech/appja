@@ -9,6 +9,7 @@ import { TokenContext } from '../../contexts/tokenContextProvider';
 import { toast } from 'react-toastify';
 import {format} from 'date-fns';
 import { FaShareAlt } from "react-icons/fa";
+import { CircleLoader } from 'react-spinners';
 
 const socket = io.connect(`${import.meta.env.VITE_BASE_SERVER_URL}`);
 
@@ -61,12 +62,16 @@ const AppDetail = () => {
 
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [data, setData] = useState(null);
   const [comment, setComment] = useState("");
 
   const downloadFile = async () => {
     try {
+      setIsDownloading(true);
       let response = await axios.get(data.app.app_url);
+
+      console.log(response);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -84,7 +89,10 @@ const AppDetail = () => {
 
     } catch(error) {
       console.log(error);
+    } finally {
+      setIsDownloading(false);
     }
+
   }
 
   const sendComment = async () => {
@@ -213,7 +221,7 @@ const AppDetail = () => {
           </div>
 
           <div className='flex-auto flex flex-col items-center max-md:flex-none'>
-            <button onClick={downloadFile} className='p-5 bg-purple-500 text-white text-lg rounded-lg'>Download</button>
+            { isDownloading ? <CircleLoader size={60} color="#cf70db" className='overflow-hidden'/> : <button onClick={downloadFile} className='p-5 bg-purple-500 text-white text-lg rounded-lg'>Download</button>}
           </div>
         </div>
 

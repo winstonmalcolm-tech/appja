@@ -6,7 +6,7 @@ const fs = require("fs");
 const upload = async (req, res, next) => {
 
     try {
-        const { app_name, app_category, app_description } = req.body;
+        const { app_name, app_category, app_description, app_url, icon_url, app_size, imagesArr, supabase_app_id } = req.body;
 
         const appCountSQL = "SELECT COUNT(developer_id) as appTotal FROM app_tbl WHERE developer_id = ?;";
         let [rows] = await mysql.query(appCountSQL, [req.id]);
@@ -46,16 +46,9 @@ const upload = async (req, res, next) => {
         if (!req.files.images) {
             res.status(400);
             throw new Error("App images were not selected");
-        }
-        
+        }    
 
-        const app = req.files.app[0];
-        const icon = req.files.icon[0];
-        const images = req.files.images;     
-
-        const app_size = Math.ceil(megabyteConversion(app.size));
-        const app_download_url = `${process.env.SERVER_BASE_URL}/${app.path}`;
-        const app_icon_url = `${process.env.SERVER_BASE_URL}/${icon.path}`;
+        const apk_size = Math.ceil(megabyteConversion(app_size));
 
         if (planType == "Hobbyist" && app_size > 100) {
             res.status(400);
@@ -67,22 +60,23 @@ const upload = async (req, res, next) => {
             throw new Error("App size exceeds what current plan offers");
         }
 
-        let sql = "INSERT INTO app_tbl (developer_id, app_name, app_category, app_size, app_url, app_icon_url, app_description) VALUES (?, ?, ?, ?, ?, ?, ?);";
+        let sql = "INSERT INTO app_tbl (developer_id, app_name, app_category, app_size, app_url, app_icon_url, app_description, supabase_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
-        const [result] = await mysql.query(sql, [req.id, app_name, app_category, app_size, app_download_url, app_icon_url, app_description]);
+        const [result] = await mysql.query(sql, [req.id, app_name, app_category, apk_size, app_url, icon_url, app_description, supabase_app_id]);
 
         
-        sql = "INSERT INTO image_tbl (app_id, image_url) VALUES (?,?);";
+        sql = "INSERT INTO image_tbl (app_id, image_url, supabase_id) VALUES (?,?,?);";
 
-        if (images.length > 4) {
-            for (let i=0; i<4; i++) {
-                image_url = `${process.env.SERVER_BASE_URL}/${images[i].path}`;
-                await mysql.query(sql, [result.insertId, image_url]);
+
+        const tempImagesArr = JSON.parse(imagesArr);
+
+        if (tempImagesArr.length > 4) {
+            for (let i=0; i<4; i++) { 
+                await mysql.query(sql, [result.insertId, tempImagesArr[i].imageUrl, tempImagesArr[i].id]);
             }
         } else {
-            for (let image in images) {
-                image_url = `${process.env.SERVER_BASE_URL}/${images[image].path}`;
-                await mysql.query(sql, [result.insertId, image_url]);
+            for (let i=0; i < tempImagesArr; i++) {
+                await mysql.query(sql, [result.insertId, tempImagesArr[i].imageUrl, tempImagesArr[i].id]);
             }
         }
 
