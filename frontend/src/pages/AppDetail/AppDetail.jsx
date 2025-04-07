@@ -71,17 +71,17 @@ const AppDetail = () => {
       setIsDownloading(true);
       let response = await axios.get(data.app.app_url);
 
-      console.log(response);
+      const fileUrl = data.app.app_url;
+      const fileName = data.app.app_name;
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = data.app.app_name || "downloaded-file";
-      document.body.appendChild(link);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
 
+      document.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
 
       response = await api.post(`app/download/${id}`, {developerId: data.app.developer_id});
 

@@ -9,6 +9,7 @@ import { CircleLoader } from 'react-spinners';
 import { IoIosHelpCircle } from "react-icons/io";
 import {createClient} from "@supabase/supabase-js";
 import { generateRandomName } from "../../utils/generateRandomName";
+import { byteToMegabyte } from "../../utils/byteToMegabyte";
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
@@ -54,6 +55,11 @@ const Upload = () => {
                 toast.info("Only the first 4 images will be uploaded");
             }
 
+            const apkSize = byteToMegabyte(app.size);
+            if (apkSize > 49.5) {
+                toast.info("App size should not be greater than 50MB.");
+                return;
+            }
 
             setLoading(true);
 

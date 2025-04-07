@@ -34,16 +34,16 @@ const getDeveloper = async (req, res, next) => {
 const updateDeveloper = async (req, res, next) => {
     try {
 
-        const {email, firstName, lastName, username, socials} = req.body;
+        const {email, firstName, lastName, username, socials, profileImage} = req.body;
         let sql;
 
-        if (!req.file) {
+        if (!profileImage) {
             sql = "UPDATE developer_tbl SET first_name = ?, last_name = ?, email = ?, username = ? WHERE developer_id = ?";
             await mysql.query(sql, [firstName, lastName, email, username, req.id]);  
         } else {
-            const imgUrl = `${process.env.SERVER_BASE_URL}/${req.file.path}`;
+            
             sql = "UPDATE developer_tbl SET first_name = ?, last_name = ?, email = ?, username = ?, profile_image = ? WHERE developer_id = ?";
-            await mysql.query(sql, [firstName, lastName, email, username, imgUrl, req.id]);        
+            await mysql.query(sql, [firstName, lastName, email, username, profileImage, req.id]);        
         }
 
 

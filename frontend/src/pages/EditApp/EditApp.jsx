@@ -3,6 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import useAxios from "../../utils/useAxios";
 import { CircleLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
+import {createClient} from "@supabase/supabase-js";
+import { generateRandomName } from "../../utils/generateRandomName";
+
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 
 const EditApp = () => {
@@ -93,6 +97,39 @@ const EditApp = () => {
     const deleteAppHandler = async () => {
         try {
             setUpdating(true);
+
+            let supabasePath = icon.split("/public/")[1];
+
+            let { error } = await supabase.storage
+                .from('test')
+                .remove(supabasePath);
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            supabasePath = data.app.app_url.split("/public/")[1];
+
+            ({ error } = await supabase.storage
+                .from('test') // Replace with your bucket name
+                .remove(supabasePath));
+
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            for (let image of media) {
+                supabasePath = image.image_url.split("/public/")[1];
+
+                let { error } = await supabase.storage
+                .from('test')
+                .remove(supabasePath);
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+            }
+        
             const response = await api.delete(`${import.meta.env.VITE_BASE_SERVER_URL}/app/remove/${appId}`);
 
             toast.info(response.data.message);
@@ -111,33 +148,99 @@ const EditApp = () => {
             e.preventDefault();
             setUpdating(true);
 
-            const formData = new FormData();
-
-            formData.append("app_name", data.app.app_name);
-            formData.append("description", description);
+            //console.log(deletedImages);
+            const updateStates = {};
             
             if (updatedIcon) {
-                formData.append("icon", updatedIcon.data);
+                const supabasePath = icon.split("/public/")[1];
+
+                let { data, error } = await supabase.storage
+                .from('test') // Replace with your bucket name
+                .remove(supabasePath);
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                ({data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, updatedIcon.data, {cacheControl: '3600', upsert: false}));
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                updateStates.iconUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`
+
             }
 
             if (typeof(apk) != "string") {
-                formData.append("apk", apk);
+                const supabasePath = data.app.app_url.split("/public/")[1];
+
+                let { data, error } = await supabase.storage
+                .from('test') // Replace with your bucket name
+                .remove(supabasePath);
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                ({data, error} = await supabase.storage.from("test").upload(`apps/${generateRandomName()}`, apk, {cacheControl: '3600', upsert: false}));
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                updateStates.appSize = apk.size;
+                updateStates.appUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`; 
             }
 
             if (deletedImages && deletedImages.length > 0) {
-                formData.append("deletedImages", JSON.stringify(deletedImages));
+
+                for (let image of deletedImages) {
+                    let supabasePath = image.image_url.split("/public/")[1];
+
+                    let { error } = await supabase.storage
+                    .from('test')
+                    .remove(supabasePath);
+
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+                }
+                updateStates.deletedImages = deletedImages;
             }
 
             if (newImages && newImages.length > 0) {
-                for (let image of newImages) {
-                    formData.append("newImages", image)
+                const newMediaAssets = [];
+                for (let image of newImages) {  
+                    let {data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, image, {cacheControl: '3600', upsert: false});
+                    
+                    if (error) {
+                        throw new Error(error.message)
+                    }
+
+                    let imageUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`;
+
+                    newMediaAssets.push({imageUrl, id: data.id});
                 }
+
+                updateStates.newImages = newMediaAssets;
+
             }
 
-            const response = await api.put(`app/${appId}`, formData, {headers: {"Content-Type": "multipart/form-data"}});
+            const response = await api.put(
+                `app/${appId}`, 
+                {
+                    "app_name": data.app.app_name,
+                    "description": description,
+                    "deletedImages": JSON.stringify(updateStates.deletedImages),
+                    "newImages": JSON.stringify(updateStates.newMediaAssets),
+                    "appSize": updateStates.appSize ?? null,
+                    "appUrl": updateStates.appUrl ?? null,
+                    "iconUrl": updateStates.iconUrl
+                }
+            );
 
             toast.info(response.data.message);
-
 
         } catch (error) {
 

@@ -7,7 +7,7 @@ const upload = async (req, res, next) => {
 
     try {
         const { app_name, app_category, app_description, app_url, icon_url, app_size, imagesArr, supabase_app_id } = req.body;
-
+        
         if (!app_name || !app_category || !app_description) {
             res.status(400);
             throw new Error("Please enter all fields");
@@ -62,14 +62,15 @@ const upload = async (req, res, next) => {
         
         sql = "INSERT INTO image_tbl (app_id, image_url, supabase_id) VALUES (?,?,?);";
 
+        const images = JSON.parse(imagesArr);
 
-        if (imagesArr.length > 4) {
+        if (images.length > 4) {
             for (let i=0; i<4; i++) { 
-                await mysql.query(sql, [result.insertId, imagesArr[i].imageUrl, imagesArr[i].id]);
+                await mysql.query(sql, [result.insertId, images[i].imageUrl, images[i].id]);
             }
         } else {
-            for (let i=0; i < tempImagesArr; i++) {
-                await mysql.query(sql, [result.insertId, imagesArr[i].imageUrl, imagesArr[i].id]);
+            for (let i=0; i < images.length; i++) {
+                await mysql.query(sql, [result.insertId, images[i].imageUrl, images[i].id]);
             }
         }
 
@@ -111,7 +112,7 @@ const download = async (req,res,next) => {
 const updateApp = async (req, res, next) => {
     try {
         const {id} = req.params;
-        const { description, deletedImages, app_name } = req.body;
+        const { description, deletedImages, app_name, newImages, appUrl, iconUrl, appSize } = req.body;
         let sql = "";
 
         if (description == null || description == "") {
@@ -131,42 +132,32 @@ const updateApp = async (req, res, next) => {
             }
         }
 
-        let app = null;
-        let icon = null;
-        let images = [];
+        const app_size = appUrl ? Math.ceil(megabyteConversion(appSize)) : null;
 
-
-        app = req.files.apk ? req.files.apk[0] : null;
-        icon = req.files.icon ? req.files.icon[0] : null;
-        images = req.files.newImages ? req.files.newImages : null;        
-
-        const url_base = `${req.protocol}://${req.hostname}:${process.env.PORT}/`;
-
-        const app_size = app ? Math.ceil(megabyteConversion(app.size)) : null;
-        const app_download_url = app ? `${url_base}${app.path}` : null;
-        const app_icon_url = icon ? `${url_base}${icon.path}` : null;
-
-        if (app) {
+        if (appUrl) {
             sql = "UPDATE app_tbl SET app_size = ?, app_url = ? WHERE app_id = ?";
-            await mysql.query(sql, [app_size, app_download_url, id]);
+            await mysql.query(sql, [app_size, appUrl, id]);
         }
 
-        if (icon) {
+        if (iconUrl) {
             sql = "UPDATE app_tbl SET app_icon_url = ? WHERE app_id = ?";
-            await mysql.query(sql, [app_icon_url, id]);
+            await mysql.query(sql, [iconUrl, id]);
         }
 
-        if (images != null) {
-            
-            sql = "INSERT INTO image_tbl (app_id, image_url) VALUES (?,?);";
-            let image_url;
 
-            for (let image of images) {
-                image_url = `${url_base}${image.path}`;
-                await mysql.query(sql, [id, image_url]);
+        if (newImages) {
+            const images = JSON.parse(newImages);
+
+            if (images != null) {
+                
+                sql = "INSERT INTO image_tbl (app_id, image_url, supabase_id) VALUES (?,?,?);";
+
+                for (let image of images) {
+                    await mysql.query(sql, [id, image.imageUrl, image.id]);
+                }
             }
         }
-       
+        
 
         res.status(200).json({message: "Update succesful"});
 
@@ -227,27 +218,8 @@ const remove = async (req, res, next) => {
 
         const {id} = req.params;
 
-
         let sql = "";
         
-        sql = "SELECT app_name FROM app_tbl WHERE app_id = ?";
-        let [rows] = await mysql.query(sql, [id]);
-
-        const appName = rows[0].app_name;
-
-        let parentDirectory = path.join(__dirname, '..');
-        let fullPath = '';
-
-        //DELETING APP FILES FROM SERVER
-        fullPath = `${parentDirectory}/uploads/${req.id}/apps/${appName.replace(" ","_")}`;
-
-        fs.rm(fullPath, {recursive: true}, (err) => {
-            if (err) {
-                res.status(500)
-                throw new Error("Trouble deleting app, try again later");
-            }
-        });
-
         sql = "DELETE app_tbl, image_tbl, review_tbl FROM app_tbl LEFT JOIN image_tbl ON app_tbl.app_id = image_tbl.app_id LEFT JOIN review_tbl ON app_tbl.app_id = review_tbl.app_id WHERE app_tbl.app_id =?;";
         await mysql.query(sql, [id]);
 

@@ -2,6 +2,10 @@ import {useEffect, useState} from 'react'
 import useAxios from '../../utils/useAxios';
 import { toast } from 'react-toastify';
 import { CircleLoader } from 'react-spinners';
+import { generateRandomName } from "../../utils/generateRandomName";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 
 const EditProfile = () => {
@@ -23,12 +27,13 @@ const EditProfile = () => {
 
     const onImageChange = (event) => {
         if (event.target.files && event.target.files[0]) {
-          setLocalFile({
+            setLocalFile({
             "data": event.target.files[0],
             "localFile":URL.createObjectURL(event.target.files[0])
             });
         }
-       }
+    }
+    
     const submitHandler = async (e) => {
 
         try {
@@ -55,27 +60,38 @@ const EditProfile = () => {
                 }
             ];
 
-            const formData = new FormData();
-
-            formData.append("email", email);
-            formData.append("firstName", firstName);
-            formData.append("lastName", lastName);
-            formData.append("username", username);
-            formData.append("oldFile", profileImg);
-            formData.append("socials", JSON.stringify(socials));
-
-            if (localFile) {
-                formData.append("profileImg", localFile.data);
+            const formData = {
+                "email": email,
+                "firstName": firstName,
+                "lastName": lastName,
+                "username": username,
+                "socials": JSON.stringify(socials) 
             }
 
-            const response = await api.put("developer/update",
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
-                } 
-            );
+            if (localFile) {
+                if (profileImg) {
+                    const supabasePath = profileImg.split("/public/")[1];
+
+                    let { error } = await supabase.storage
+                        .from('test')
+                        .remove(supabasePath);
+        
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+                }
+
+                let {data, error} = await supabase.storage.from("test").upload(`profile/${generateRandomName()}`, localFile.data, {cacheControl: '3600', upsert: false});
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                formData.profileImage = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`;
+            }
+
+            const response = await api.put("developer/update",formData);
+
             toast.success(response.data.message);
 
         } catch (error) {
