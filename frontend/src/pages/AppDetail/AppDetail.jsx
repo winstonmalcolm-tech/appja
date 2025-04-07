@@ -78,7 +78,7 @@ const AppDetail = () => {
       link.href = fileUrl;
       link.download = fileName;
 
-      document.appendChild(link);
+      document.body.appendChild(link);
       link.click();
 
       document.body.removeChild(link);
