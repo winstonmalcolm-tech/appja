@@ -63,15 +63,13 @@ const upload = async (req, res, next) => {
         sql = "INSERT INTO image_tbl (app_id, image_url, supabase_id) VALUES (?,?,?);";
 
 
-        const tempImagesArr = JSON.parse(imagesArr);
-
-        if (tempImagesArr.length > 4) {
+        if (imagesArr.length > 4) {
             for (let i=0; i<4; i++) { 
-                await mysql.query(sql, [result.insertId, tempImagesArr[i].imageUrl, tempImagesArr[i].id]);
+                await mysql.query(sql, [result.insertId, imagesArr[i].imageUrl, imagesArr[i].id]);
             }
         } else {
             for (let i=0; i < tempImagesArr; i++) {
-                await mysql.query(sql, [result.insertId, tempImagesArr[i].imageUrl, tempImagesArr[i].id]);
+                await mysql.query(sql, [result.insertId, imagesArr[i].imageUrl, imagesArr[i].id]);
             }
         }
 
