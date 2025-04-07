@@ -30,7 +30,7 @@ const Upload = () => {
 
             e.preventDefault();
 
-            if (!appName || !description) {
+            if (!appName || !description || !category) {
                 toast.info("Please fill all fields");
                 return;
             }
@@ -88,26 +88,16 @@ const Upload = () => {
                 imagesTemp.push({imageUrl, id: data.id});
             }
 
-            const formData = new FormData();
-    
-            formData.append("app_name", appName);
-            formData.append("app_category", category);
-            formData.append("app_description", description);
-            formData.append("app_url", appUrl);
-            formData.append("icon_url", iconUrl);
-            formData.append("app_size", app.size);
-            formData.append("supabase_app_id", appId);
-            formData.append("imagesArr", JSON.stringify(imagesTemp));
-
-            const response = await api.post(
-                "app/upload", 
-                formData, 
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data"
-                    }
-                }
-            );
+            const response = await api.post("app/upload", {
+                "app_name": appName,
+                "app_category": category,
+                "app_description": description,
+                "app_url": appUrl,
+                "icon_url": iconUrl,
+                "app_size": app.size,
+                "supabase_app_id": appId,
+                "imagesArr": JSON.stringify(imagesTemp)
+            });
 
             toast.success(response.data.message);
             navigate(-1);

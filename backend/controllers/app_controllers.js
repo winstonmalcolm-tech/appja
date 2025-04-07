@@ -8,6 +8,11 @@ const upload = async (req, res, next) => {
     try {
         const { app_name, app_category, app_description, app_url, icon_url, app_size, imagesArr, supabase_app_id } = req.body;
 
+        if (!app_name || !app_category || !app_description) {
+            res.status(400);
+            throw new Error("Please enter all fields");
+        }
+
         const appCountSQL = "SELECT COUNT(developer_id) as appTotal FROM app_tbl WHERE developer_id = ?;";
         let [rows] = await mysql.query(appCountSQL, [req.id]);
 
@@ -36,11 +41,6 @@ const upload = async (req, res, next) => {
         if (planType == "Standard" && appCount == 10) {
             res.status(403);
             throw new Error("You have reached the maximum amount of uploads, remove existing apps to upload more");
-        }
-
-        if (!app_name || !app_category || !app_description) {
-            res.status(400);
-            throw new Error("Please enter all fields");
         }
 
         const apk_size = Math.ceil(megabyteConversion(app_size));
