@@ -5,7 +5,7 @@ import "../../index.css";
 import useAxios from '../../utils/useAxios';
 import { TokenContext } from '../../contexts/tokenContextProvider'; 
 import AppCard from '../../components/AppCard/AppCard';
-
+import { CircleLoader } from 'react-spinners';
 
 const INITIAL_STATE = {
   loading: true,
@@ -84,7 +84,9 @@ const Profile = () => {
       fetchUserData(api);
     }, []);
 
-    if (state.loading) return <h1>Loading</h1>;
+    if (state.loading) {
+      return <center><CircleLoader size={60} color="#cf70db" className='overflow-hidden'/></center>
+    }
 
   return (
     <div>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import useAxios from "../../utils/useAxios";
 import AppCard from "../../components/AppCard/AppCard";
+import { CircleLoader } from 'react-spinners';
+
 
 const Explore = () => {
   const api = useAxios();
@@ -41,7 +43,7 @@ const Explore = () => {
   }, [])
 
   if (loading) {
-    return <center>Loading</center>
+    return <center><CircleLoader size={60} color="#cf70db" className='overflow-hidden'/></center>
   }
 
   return (

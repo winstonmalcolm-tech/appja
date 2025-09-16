@@ -82,6 +82,7 @@
 
 .upload_form_container form label {
     background-color: rgb(100, 55, 100);
+    color: white;
     padding: 10px;
     width: 20%;
     text-align: center;

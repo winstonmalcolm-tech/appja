@@ -234,7 +234,7 @@ const AppDetail = () => {
 
 
         <div className='mt-20 flex flex-wrap gap-5 max-md:justify-center'>
-          {data.media.map((image, i) => <img key={i} className='w-64 h-72 object-cover object-center' src={image.image_url} />)}
+          {data.media.map((image, i) => <img key={i} className='w-64 h-84 object-fit object-center' src={image.image_url} />)}
         </div>
 
 
