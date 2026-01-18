@@ -14,7 +14,7 @@ app.options('*', cors());
 const port = process.env.PORT || 8000;
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 
 //Middlewares
@@ -27,7 +27,7 @@ const appRoute = require("./routes/app_route");
 const reviewRoute = require("./routes/review_route");
 const paymentRoute = require("./routes/payment_route");
 
-app.use("/uploads", express.static(path.join("uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 //Routes
@@ -37,8 +37,8 @@ app.use("/developer", developerRoute);
 app.use("/review", reviewRoute);
 app.use("/paypal", paymentRoute);
 
-app.use("*", (req,res)=> {
-    res.status(404).json({message: "Incorrect route"});
+app.use("*", (req, res) => {
+    res.status(404).json({ message: "Incorrect route" });
 })
 
 app.use(errorHandler);

@@ -4,10 +4,13 @@ const { upload, remove, getApp, download, updateApp, getApps } = require("../con
 
 
 router.get("/", getApps);
-router.post("/upload", protect, upload);
+const uploadMiddleware = require("../middlewares/upload_middleware");
+
+router.get("/", getApps);
+router.post("/upload", protect, uploadMiddleware, upload);
 router.get("/:id", getApp);
-router.post("/download/:appId", download);
-router.put("/:id", protect, updateApp);
+router.get("/download/:appId", download);
+router.put("/:id", protect, uploadMiddleware, updateApp);
 router.delete("/remove/:id", protect, remove);
 
 module.exports = router;

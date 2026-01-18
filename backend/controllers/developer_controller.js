@@ -1,10 +1,27 @@
 const mysql = require("../config/db_config");
+const fs = require("fs");
+const path = require("path");
+
+// Helper to delete file
+const deleteFile = (fileUrl) => {
+    if (!fileUrl) return;
+    try {
+        const urlObj = new URL(fileUrl);
+        const relativePath = urlObj.pathname.startsWith('/') ? urlObj.pathname.substring(1) : urlObj.pathname;
+        const filePath = path.join(__dirname, '..', relativePath);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    } catch (e) {
+        console.log("Error deleting file:", e.message);
+    }
+}
 
 
 const getDeveloper = async (req, res, next) => {
 
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         const developerId = req.id ? req.id : id;
 
         let data = {};
@@ -34,26 +51,45 @@ const getDeveloper = async (req, res, next) => {
 const updateDeveloper = async (req, res, next) => {
     try {
 
-        const {email, firstName, lastName, username, socials, profileImage} = req.body;
+        const { email, firstName, lastName, username, socials, profileImage } = req.body;
         let sql;
 
-        if (!profileImage) {
+        // Fetch current developer to get old profile image for cleanup
+        let [currentDev] = await mysql.query("SELECT profile_image FROM developer_tbl WHERE developer_id = ?", [req.id]);
+        let oldProfileImage = currentDev[0] ? currentDev[0].profile_image : null;
+
+        let profileImageUrl = profileImage; // Default to existing if passed
+
+        // Check for new profile image upload
+        if (req.files && req.files['profile_image']) {
+
+            // Delete old valid profile image if it exists and is local
+            if (oldProfileImage) {
+                deleteFile(oldProfileImage);
+            }
+
+            const baseUrl = process.env.SERVER_BASE_URL;
+            const imagePath = req.files['profile_image'][0].path.replace(/\\/g, "/");
+            profileImageUrl = `${baseUrl}/${imagePath}`;
+        }
+
+        if (!profileImageUrl) {
             sql = "UPDATE developer_tbl SET first_name = ?, last_name = ?, email = ?, username = ? WHERE developer_id = ?";
-            await mysql.query(sql, [firstName, lastName, email, username, req.id]);  
+            await mysql.query(sql, [firstName, lastName, email, username, req.id]);
         } else {
-            
+
             sql = "UPDATE developer_tbl SET first_name = ?, last_name = ?, email = ?, username = ?, profile_image = ? WHERE developer_id = ?";
-            await mysql.query(sql, [firstName, lastName, email, username, profileImage, req.id]);        
+            await mysql.query(sql, [firstName, lastName, email, username, profileImageUrl, req.id]);
         }
 
 
         sql = "UPDATE social_tbl SET social_url = ? WHERE social_name = ? AND developer_id = ?";
-        
+
         for (let social of JSON.parse(socials)) {
             await mysql.query(sql, [social.url, social.name, req.id]);
         }
 
-        res.status(200).json({message: "Updated successfully"});
+        res.status(200).json({ message: "Updated successfully" });
 
     } catch (error) {
         console.log(error);
@@ -63,12 +99,12 @@ const updateDeveloper = async (req, res, next) => {
 
 const getPlan = async (req, res, next) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         const sql = "SELECT plan FROM developer_tbl WHERE developer_id = ?;";
         const [rows] = await mysql.query(sql, [id]);
 
-        res.status(200).json({plan: rows[0].plan});
+        res.status(200).json({ plan: rows[0].plan });
     } catch (error) {
         next(error.message)
     }

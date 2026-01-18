@@ -7,11 +7,11 @@ import useAxios from "../../utils/useAxios";
 import { useNavigate } from "react-router-dom";
 import { CircleLoader } from 'react-spinners';
 import { IoIosHelpCircle } from "react-icons/io";
-import {createClient} from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js"; // Removed Supabase
 import { generateRandomName } from "../../utils/generateRandomName";
 import { byteToMegabyte } from "../../utils/byteToMegabyte";
 
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+// const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY); // Removed
 
 const Upload = () => {
 
@@ -56,62 +56,38 @@ const Upload = () => {
             }
 
             const apkSize = byteToMegabyte(app.size);
-            if (apkSize > 49.5) {
-                toast.info("App size should not be greater than 50MB.");
+            if (apkSize > 149.5) {
+                toast.info("App size should not be greater than 150MB.");
                 return;
             }
 
             setLoading(true);
 
-            let {data, error} = await supabase.storage.from("test").upload(`apps/${generateRandomName()}`, app, {cacheControl: '3600', upsert: false});
+            // Create FormData
+            const formData = new FormData();
+            formData.append("app_name", appName);
+            formData.append("app_category", category);
+            formData.append("app_description", description);
 
-            if (error) {
-                throw new Error(error.message);
-            }
-            
-            const appId = data.id;
-            const appUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`;
+            formData.append("app", app);
+            formData.append("icon", icon);
 
-            ({data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, icon, {cacheControl: '3600', upsert: false}));
-
-            if (error) {
-                throw new Error(error.message);
-            }
-
-            const iconUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`
-            
-
-            const imagesTemp = [];
-
+            // Append images
             for (let i = 0; i < images.length; i++) {
-                ({data, error} = await supabase.storage.from("test").upload(`media/${generateRandomName()}`, images[i], {cacheControl: '3600', upsert: false}));
-
-                if (error) {
-                    throw new Error(error.message);
+                if (i < 4) { // Limit to 4 images
+                    formData.append("images", images[i]);
                 }
-
-                let imageUrl = `https://usmrhsyttzziphqltrdn.supabase.co/storage/v1/object/public/${data.fullPath}`
-                imagesTemp.push({imageUrl, id: data.id});
             }
 
-            const response = await api.post("app/upload", {
-                "app_name": appName,
-                "app_category": category,
-                "app_description": description,
-                "app_url": appUrl,
-                "icon_url": iconUrl,
-                "app_size": app.size,
-                "supabase_app_id": appId,
-                "imagesArr": JSON.stringify(imagesTemp)
-            });
+            const response = await api.post("app/upload", formData);
 
             toast.success(response.data.message);
             navigate(-1);
-        
-    
+
+
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message);
+            toast.error(error.response?.data?.message || "An error occurred");
         } finally {
             setLoading(false);
         }
@@ -156,94 +132,94 @@ const Upload = () => {
         "Game"
     ]
 
-  return (
-    <div className='upload_container'>
-        
-        <div className="upload_return_container">
-            <Link to={'/profile'}><IoReturnDownBack size={25} color="red"/>Return</Link>
-            <IoIosHelpCircle size={30} color="white" className="help_btn" onClick={()=>document.getElementById('help_modal').showModal()}/>
-        
-            <dialog id="help_modal" className="modal">
-              <div className="modal-box">
-                <h1 className="font-bold text-2xl mb-5">How to get APK file for:</h1>
-                
-                <section className="mb-8">
-                    <h2 className="text-xl mb-5">React Native Projects</h2>
+    return (
+        <div className='upload_container'>
 
-                    <ol className="flex flex-col gap-3">
-                        <li className="text-gray-400">1. Open a terminal and navigate to the project directory </li>
-                        <li className="text-gray-400">2. Run the command `cd android`</li>
-                        <li className="text-gray-400">3. Run the command `./gradlew assembleRelease` to generate a release APK </li>
-                        <li className="text-gray-400">4. Find the APK file in the following path: `android/app/build/outputs/apk/release/app-release.apk`</li>
-                    </ol>
+            <div className="upload_return_container">
+                <Link to={'/profile'}><IoReturnDownBack size={25} color="red" />Return</Link>
+                <IoIosHelpCircle size={30} color="white" className="help_btn" onClick={() => document.getElementById('help_modal').showModal()} />
 
-                </section>
-                <section className="mb-8">
-                    <h2 className="text-xl mb-5">Flutter Projects</h2>
+                <dialog id="help_modal" className="modal">
+                    <div className="modal-box">
+                        <h1 className="font-bold text-2xl mb-5">How to get APK file for:</h1>
 
-                    <ol className="flex flex-col gap-3">
-                        <li className="text-gray-400">1. Open the Flutter project in the terminal.</li>
-                        <li className="text-gray-400">2. Run the command `flutter build apk`</li>
-                        <li className="text-gray-400">3. Locate the generated APK file in the `build/app/outputs/flutter-apk` directory</li>
-                    </ol>
+                        <section className="mb-8">
+                            <h2 className="text-xl mb-5">React Native Projects</h2>
 
-                </section>
-                <section className="mb-8">
-                    <h2 className="text-xl mb-5">Native Projects</h2>
+                            <ol className="flex flex-col gap-3">
+                                <li className="text-gray-400">1. Open a terminal and navigate to the project directory </li>
+                                <li className="text-gray-400">2. Run the command `cd android`</li>
+                                <li className="text-gray-400">3. Run the command `./gradlew assembleRelease` to generate a release APK </li>
+                                <li className="text-gray-400">4. Find the APK file in the following path: `android/app/build/outputs/apk/release/app-release.apk`</li>
+                            </ol>
 
-                    <ol className="flex flex-col gap-3">
-                        <li className="text-gray-400">1. Open the Build option in the toolbar.</li>
-                        <li className="text-gray-400">2. Click the `Generate Signed Bundle` option</li>
-                        <li className="text-gray-400">3. Select APK and follow the rest of the steps</li>
-                    </ol>
-                </section>
-                
-                
-                <div className="modal-action">
-                  <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
-                    <button className="btn">Close</button>
-                  </form>
-                </div>
-              </div>
-            </dialog>
+                        </section>
+                        <section className="mb-8">
+                            <h2 className="text-xl mb-5">Flutter Projects</h2>
+
+                            <ol className="flex flex-col gap-3">
+                                <li className="text-gray-400">1. Open the Flutter project in the terminal.</li>
+                                <li className="text-gray-400">2. Run the command `flutter build apk`</li>
+                                <li className="text-gray-400">3. Locate the generated APK file in the `build/app/outputs/flutter-apk` directory</li>
+                            </ol>
+
+                        </section>
+                        <section className="mb-8">
+                            <h2 className="text-xl mb-5">Native Projects</h2>
+
+                            <ol className="flex flex-col gap-3">
+                                <li className="text-gray-400">1. Open the Build option in the toolbar.</li>
+                                <li className="text-gray-400">2. Click the `Generate Signed Bundle` option</li>
+                                <li className="text-gray-400">3. Select APK and follow the rest of the steps</li>
+                            </ol>
+                        </section>
+
+
+                        <div className="modal-action">
+                            <form method="dialog">
+                                {/* if there is a button in form, it will close the modal */}
+                                <button className="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
+            </div>
+
+            <div className="upload_form_container">
+                <form onSubmit={formHandler} method="post">
+                    <input type="text" placeholder="App Name" value={appName} onChange={(e) => setAppName(e.target.value)} />
+                    <select onChange={(e) => setCategory(e.target.value)} value={category}>
+                        <option disabled>Please select one category</option>
+                        {appCategories.map((item, i) => {
+                            return (
+                                <option key={i} value={item}>{item}</option>
+                            )
+                        })}
+
+                    </select>
+                    <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+
+                    <label htmlFor="app_icon">Select an Icon</label>
+                    <input type="file" id="app_icon" hidden accept="image/png, image/jpeg" onChange={(e) => setIcon(e.target.files[0])} />
+
+                    <p>{icon?.name}</p>
+
+                    <label htmlFor="app_showcase_images">Select 4 images for showcase</label>
+                    <input type="file" id="app_showcase_images" hidden accept="image/png, image/jpeg" multiple={true} onChange={(e) => setImages(e.target.files)} max={4} />
+
+                    <p>{images && "Images selected"}</p>
+
+                    <label htmlFor="app_apk">Apk file</label>
+                    <input type="file" id="app_apk" hidden accept=".apk" onChange={(e) => setApp(e.target.files[0])} />
+
+                    <p>{app?.name}</p>
+
+                    {isLoading ? <CircleLoader size={60} color="#cf70db" className='overflow-hidden' /> : <button type="submit">Upload</button>}
+
+                </form>
+            </div>
         </div>
-
-        <div className="upload_form_container">
-            <form onSubmit={formHandler} method="post">
-                <input type="text" placeholder="App Name" value={appName} onChange={(e) => setAppName(e.target.value)}/>
-                <select onChange={(e) => setCategory(e.target.value)} value={category}>
-                    <option disabled>Please select one category</option>
-                    {appCategories.map((item, i) => { 
-                        return (
-                        <option key={i} value={item}>{item}</option>
-                        )
-                    })}
-                    
-                </select>
-                <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-
-                <label htmlFor="app_icon">Select an Icon</label>
-                <input type="file" id="app_icon" hidden accept="image/png, image/jpeg" onChange={(e) => setIcon(e.target.files[0])}/>
-
-                <p>{icon?.name}</p>
-
-                <label htmlFor="app_showcase_images">Select 4 images for showcase</label>
-                <input type="file" id="app_showcase_images" hidden accept="image/png, image/jpeg" multiple={true} onChange={(e) => setImages(e.target.files)} max={4}/>
-                
-                <p>{images && "Images selected"}</p>
-            
-                <label htmlFor="app_apk">Apk file</label>
-                <input type="file" id="app_apk" hidden accept=".apk" onChange={(e) => setApp(e.target.files[0])}/>
-
-                <p>{app?.name}</p>
-                
-                { isLoading ? <CircleLoader size={60} color="#cf70db" className='overflow-hidden'/>: <button type="submit">Upload</button>}
-               
-            </form>
-        </div>
-    </div>
-  )
+    )
 }
 
 export default Upload

@@ -9,7 +9,6 @@
 .home_hero {
     display: flex;
     height: calc(100vh - 120px);
-    width: 100%;
 }
 
 .home_left {
@@ -23,7 +22,7 @@
     gap: 30px;
 }
 
-.home_left h1{
+.home_left h1 {
     font-size: 55px;
 }
 
@@ -40,7 +39,7 @@
 .home_left a:hover {
     background-color: var(--color-primary);
     transform: scale(1.2);
-    
+
 }
 
 .home_right {
@@ -50,8 +49,8 @@
     justify-content: center;
 }
 
-.home_right img{
-    width:  100%;
+.home_right img {
+    width: 100%;
     height: 100%;
     object-fit: none;
 }
@@ -99,7 +98,8 @@
     display: flex;
 }
 
-.img,  .accordian_list{
+.img,
+.accordian_list {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -218,7 +218,7 @@
         text-align: center;
     }
 
-    .accordian_list div{
+    .accordian_list div {
         width: 90%;
     }
 
@@ -228,7 +228,7 @@
 }
 
 @media screen and (max-width: 450px) {
-    .home_left h1{
+    .home_left h1 {
         font-size: 24px;
     }
 
@@ -250,6 +250,3 @@
         text-align: justify;
     }
 }
-
-
-
