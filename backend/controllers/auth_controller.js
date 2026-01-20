@@ -1,16 +1,16 @@
 const mysql = require("../config/db_config");
 const bcrypt = require("bcryptjs");
-const mail = require("../config/email_config");
+const sendMail = require("../config/email_config");
 const emailValidator = require('email-validator');
 const emailTokenGenerator = require("../utlis/email_token_generator");
 const jwt = require("jsonwebtoken");
 const jwtGenerator = require("../utlis/jwt_token_generator");
 
 
-const register = async (req,res, next) => {
+const register = async (req, res, next) => {
 
-    try {   
-        const {firstName, lastName, email, username, password} = req.body;
+    try {
+        const { firstName, lastName, email, username, password } = req.body;
 
         const socials = [
             "Instagram",
@@ -18,7 +18,7 @@ const register = async (req,res, next) => {
             "Website",
             "Github"
         ]
-        
+
         if (!firstName || !lastName || !email || !username || !password) {
             res.status(400);
             throw new Error("Please fill all fields");
@@ -38,7 +38,7 @@ const register = async (req,res, next) => {
         }
 
         let tempSql = "SELECT * FROM developer_tbl WHERE email = ? LIMIT 1";
-        let [rows] = await mysql.query(tempSql,[email]);
+        let [rows] = await mysql.query(tempSql, [email]);
 
         if (rows.length > 0) {
             res.status(409);
@@ -54,17 +54,17 @@ const register = async (req,res, next) => {
         }
 
         const emailToken = emailTokenGenerator();
-        const hashedPassword = await bcrypt.hash(password,10);
+        const hashedPassword = await bcrypt.hash(password, 10);
         const date = new Date();
         date.setHours(date.getHours() + 1);
         let result;
         //SQL QUERY
         let sql = "INSERT INTO developer_tbl (first_name, last_name, email, username, developer_password, verification_token, verification_token_exp) VALUES (?,?,?,?,?,?,?)";
-        [result] = await mysql.query(sql,[firstName, lastName, email, username, hashedPassword, emailToken, date]);
-        
+        [result] = await mysql.query(sql, [firstName, lastName, email, username, hashedPassword, emailToken, date]);
+
 
         sql = "INSERT INTO social_tbl (developer_id, social_name, social_url) VALUES (?,?,?);";
-        
+
         for (let social of socials) {
             await mysql.query(sql, [result.insertId, social, ""]);
         }
@@ -72,24 +72,20 @@ const register = async (req,res, next) => {
         const verificationUrl = `${process.env.SERVER_BASE_URL}/auth/verify/${emailToken}`;
 
 
-        await mail.sendMail({
-            from: `AppJA <appja@gmail.com>`,
-            subject: "Email Verification",
-            to: email,
-            html: `
+        await sendMail(`AppJA`, "Email Verification", email, `
                 <h1>Hi, ${firstName}</h1>
                 <p>Thank you for signing up for our platform, please click <a href="${verificationUrl}">here</a> to verify your email.<br />Link expires in 1 hour. 
-            `
-        }).catch(async (err) => {
+            `).catch(async (err) => {
             if (err) {
                 sql = `DELETE developer_tbl, social_tbl FROM developer_tbl INNER JOIN social_tbl WHERE developer_tbl.developer_id = social_tbl.developer_id AND developer_tbl.developer_id=${result.insertId}`;
                 await mysql.query(sql);
                 res.status(500);
+                console.log(err);
                 throw new Error("Sorry, we are having issue with our server");
             }
         });
 
-        res.status(201).json({message: "Please verifiy your email by clicking on the link sent to you"});
+        res.status(201).json({ message: "Please verifiy your email by clicking on the link sent to you" });
 
     } catch (error) {
         next(error.message);
@@ -98,7 +94,7 @@ const register = async (req,res, next) => {
 
 
 
-const verify = async (req,res,next) => {
+const verify = async (req, res, next) => {
 
     try {
         const { token } = req.params;
@@ -109,7 +105,7 @@ const verify = async (req,res,next) => {
 
         if (rows.fieldCount < 1) {
             message = "Email already verified.";
-            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=true&reason="+message);
+            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=true&reason=" + message);
             return;
         }
 
@@ -117,7 +113,7 @@ const verify = async (req,res,next) => {
             sql = "DELETE FROM developer_tbl WHERE verification_token = ?";
             await mysql.query(sql, [token]);
             message = "Email link expired. Please sign up again.";
-            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=false&reason="+message);
+            res.redirect(process.env.CLIENT_BASE_URL + "/verified?isVerified=false&reason=" + message);
             return;
         }
 
@@ -127,11 +123,11 @@ const verify = async (req,res,next) => {
 
         if (result.affectedRows > 0) {
             //Redirect to frontend
-            res.redirect(301, process.env.CLIENT_BASE_URL+"/verified?isVerified=true");
+            res.redirect(301, process.env.CLIENT_BASE_URL + "/verified?isVerified=true");
             return;
         }
         message = "Sorry, server error";
-        res.redirect(301, process.env.CLIENT_BASE_URL+"/verified?isVerified=false&reason="+message);
+        res.redirect(301, process.env.CLIENT_BASE_URL + "/verified?isVerified=false&reason=" + message);
     } catch (error) {
         next(error.message);
     }
@@ -140,7 +136,7 @@ const verify = async (req,res,next) => {
 const login = async (req, res, next) => {
 
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
 
         if (!email || !password) {
             res.status(400);
@@ -150,7 +146,7 @@ const login = async (req, res, next) => {
         let sql = "SELECT * FROM developer_tbl WHERE email = ? OR username = ? LIMIT 1";
 
         const [rows] = await mysql.query(sql, [email, email]);
-        
+
         if (rows.length < 1) {
             res.status(404);
             throw new Error("User not found");
@@ -168,14 +164,14 @@ const login = async (req, res, next) => {
             throw new Error("Please verify your email");
         }
 
-        const {accessToken, refreshToken} = jwtGenerator(result.developer_id);
+        const { accessToken, refreshToken } = jwtGenerator(result.developer_id);
 
         sql = "UPDATE developer_tbl SET refresh_token = ? WHERE developer_id = ?";
         await mysql.query(sql, [refreshToken, result.developer_id]);
 
-        res.status(200).json({message: "You are logged in successfully", accessToken: accessToken, refreshToken: refreshToken});
+        res.status(200).json({ message: "You are logged in successfully", accessToken: accessToken, refreshToken: refreshToken });
 
-    } catch(error) {
+    } catch (error) {
         next(error.message);
     }
 }
@@ -188,7 +184,7 @@ const refreshToken = async (req, res, next) => {
         if (!refreshToken) {
             res.status(400);
             throw new Error("Please enter refresh token");
-        }   
+        }
 
         let sql = "SELECT * FROM developer_tbl WHERE refresh_token = ?";
 
@@ -212,7 +208,7 @@ const refreshToken = async (req, res, next) => {
     }
 }
 
-const logout = async (req,res,next) => {
+const logout = async (req, res, next) => {
 
     try {
         const refresh_token = req.body.refreshToken;
@@ -221,7 +217,7 @@ const logout = async (req,res,next) => {
 
         await mysql.query(sql, [refresh_token]);
 
-        res.status(200).json({ message: "Successfully logged out"});
+        res.status(200).json({ message: "Successfully logged out" });
 
     } catch (error) {
         next(error.message);
