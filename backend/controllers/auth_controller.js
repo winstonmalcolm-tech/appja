@@ -72,18 +72,22 @@ const register = async (req, res, next) => {
         const verificationUrl = `${process.env.SERVER_BASE_URL}/auth/verify/${emailToken}`;
 
 
-        await sendMail(`AppJA`, "Email Verification", email, `
+        await sendMail(
+            `"AppJA" <${process.env.EMAIL_ADDR}>`,
+            email,
+            "Email Verification",
+            `
                 <h1>Hi, ${firstName}</h1>
                 <p>Thank you for signing up for our platform, please click <a href="${verificationUrl}">here</a> to verify your email.<br />Link expires in 1 hour. 
             `).catch(async (err) => {
-            if (err) {
-                sql = `DELETE developer_tbl, social_tbl FROM developer_tbl INNER JOIN social_tbl WHERE developer_tbl.developer_id = social_tbl.developer_id AND developer_tbl.developer_id=${result.insertId}`;
-                await mysql.query(sql);
-                res.status(500);
-                console.log(err);
-                throw new Error("Sorry, we are having issue with our server");
-            }
-        });
+                if (err) {
+                    sql = `DELETE developer_tbl, social_tbl FROM developer_tbl INNER JOIN social_tbl WHERE developer_tbl.developer_id = social_tbl.developer_id AND developer_tbl.developer_id=${result.insertId}`;
+                    await mysql.query(sql);
+                    res.status(500);
+                    console.log(err);
+                    throw new Error("Sorry, we are having issue with our server");
+                }
+            });
 
         res.status(201).json({ message: "Please verifiy your email by clicking on the link sent to you" });
 
