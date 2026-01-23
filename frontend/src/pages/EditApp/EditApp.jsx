@@ -217,8 +217,8 @@ const EditApp = () => {
                 <div className='w-full'>
                     <div className='p-3 w-full bg-black flex justify-between items-center mb-8'>
                         <h1 className='text-xl'>APK File</h1>
-                        <label htmlFor='changemedia' className='text-blue-400 hover:cursor-pointer'>Update &gt;&gt;</label>
-                        <input id="changemedia" type="file" hidden={true} accept=".apk" onChange={(e) => setApk(e.target.files[0])} />
+                        <label htmlFor='changeapk' className='text-blue-400 hover:cursor-pointer'>Update &gt;&gt;</label>
+                        <input id="changeapk" type="file" hidden={true} accept=".apk" onChange={(e) => setApk(e.target.files[0])} />
                     </div>
 
                     {apk ? <h1 className='text-green-600 text-lg'>APK Set</h1> : <h1 className='text-red-500 text-lg'>Please select APK</h1>}
