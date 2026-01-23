@@ -6,8 +6,8 @@ import { TokenContext } from "../contexts/tokenContextProvider";
 
 //This is used to update the context - global state
 const useAxios = () => {
-    const { setTokens, logout,tokens } = useContext(TokenContext);
-    
+    const { setTokens, logout, tokens } = useContext(TokenContext);
+
     const axiosInstance = axios.create({
         baseURL: import.meta.env.VITE_BASE_SERVER_URL,
         headers: {
@@ -16,45 +16,49 @@ const useAxios = () => {
     });
 
     axiosInstance.interceptors.request.use(async (req) => {
-        
-        if (tokens == null) {
+
+        if (!tokens) {
             return req;
         }
 
         //Decode the jwt token 
         const decodedToken = jwtDecode(tokens.accessToken);
-    
+
         //Check if token expired by comparing the expiration date from the token to current date using dayjs package
         const isExpired = dayjs.unix(decodedToken.exp).diff(dayjs()) < 1;
-    
-    
+
         //If token is not expired continue with the request
         if (!isExpired) return req;
-    
-        const response = await axios.post(`${import.meta.env.VITE_BASE_SERVER_URL}/auth/refresh_token`, {refreshToken: tokens.refreshToken});
 
-        if (response.status == 403) {
-            return req;
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_BASE_SERVER_URL}/auth/refresh_token`, { refreshToken: tokens.refreshToken });
+
+            if (response.status === 200) {
+                setTokens({ ...tokens, accessToken: response.data.accessToken });
+                req.headers.Authorization = `Bearer ${response.data.accessToken}`;
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 403) {
+                logout("Session expired, please sign in again");
+            }
+            return Promise.reject(error);
         }
-            
-        setTokens({...tokens, accessToken: response.data.accessToken});
 
-        req.headers.Authorization = `Bearer ${response.data.accessToken}`;
-    
-    
         //Continue with the request
         return req;
     });
 
-    axiosInstance.interceptors.response.use(async (res) => {
-
-        if (res.status == 403) {
-            logout(res.data.message);
-            return;
+    axiosInstance.interceptors.response.use(
+        (res) => {
+            return res;
+        },
+        (error) => {
+            if (error.response && error.response.status === 401) {
+                logout(error.response.data.message || "Session expired");
+            }
+            return Promise.reject(error);
         }
-
-        return res;
-    })
+    )
 
 
     return axiosInstance;

@@ -20,25 +20,26 @@ const TokenContextProvider = ({ children }) => {
     const logout = async (message = "Logout successful") => {
 
         try {
-            
-             await axios.post(
-                `${import.meta.env.VITE_BASE_SERVER_URL}/auth/logout`, 
-                {
-                    refreshToken: tokens.refreshToken
-                }, 
-                {
-                    headers: `Bearer ${tokens.accessToken}`
-                }
-            );
-            
+            if (tokens) {
+                await axios.post(
+                    `${import.meta.env.VITE_BASE_SERVER_URL}/auth/logout`,
+                    {
+                        refreshToken: tokens.refreshToken
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${tokens.accessToken}`
+                        }
+                    }
+                );
+            }
+        } catch (error) {
+            console.error("Backend logout failed:", error);
+        } finally {
             localStorage.clear();
             setTokens(null);
             toast.info(message);
             navigate("/");
-
-        } catch(error) {
-            console.log(error)
-            //toast.error(`${error.response.data.message}`);
         }
     }
 
@@ -48,10 +49,10 @@ const TokenContextProvider = ({ children }) => {
     }, [tokens]);
 
     return (
-        <TokenContext.Provider value={{tokens, setTokens, logout}}>
-            { children }
+        <TokenContext.Provider value={{ tokens, setTokens, logout }}>
+            {children}
         </TokenContext.Provider>
     )
 }
 
-export {TokenContextProvider, TokenContext}
+export { TokenContextProvider, TokenContext }
