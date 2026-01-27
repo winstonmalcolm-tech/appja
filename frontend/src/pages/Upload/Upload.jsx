@@ -23,12 +23,11 @@ const Upload = () => {
     const [images, setImages] = useState(null);
     const [app, setApp] = useState(null);
     const [isLoading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const navigate = useNavigate();
 
     const formHandler = async (e) => {
-
         try {
-
             e.preventDefault();
 
             if (!appName || !description || !category) {
@@ -55,44 +54,75 @@ const Upload = () => {
                 toast.info("Only the first 4 images will be uploaded");
             }
 
-            const apkSize = byteToMegabyte(app.size);
-            if (apkSize > 300) {
+            const apkSizeInMB = byteToMegabyte(app.size);
+            if (apkSizeInMB > 300) {
                 toast.info("App size should not be greater than 300MB.");
                 return;
             }
 
             setLoading(true);
+            setUploadProgress(0);
 
-            // Create FormData
+            const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+            const uploadId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const totalChunks = Math.ceil(app.size / CHUNK_SIZE);
+
+            // 1. Upload APK in chunks if it's large (or always for consistency)
+            if (app.size > CHUNK_SIZE) {
+                for (let i = 0; i < totalChunks; i++) {
+                    const start = i * CHUNK_SIZE;
+                    const end = Math.min(app.size, start + CHUNK_SIZE);
+                    const chunk = app.slice(start, end);
+
+                    const chunkFormData = new FormData();
+                    chunkFormData.append("uploadId", uploadId);
+                    chunkFormData.append("chunkIndex", i);
+                    chunkFormData.append("app", chunk); // Use same field name for middleware
+
+                    await api.post("app/chunk", chunkFormData);
+
+                    // Update progress
+                    const progress = Math.round(((i + 1) / (totalChunks + 1)) * 100);
+                    setUploadProgress(progress);
+                }
+            }
+
+            // 2. Final Upload (Metadata + Icons + Images + Assembly Signal)
             const formData = new FormData();
             formData.append("app_name", appName);
             formData.append("app_category", category);
             formData.append("app_description", description);
 
-            formData.append("app", app);
+            // If we didn't chunk (small file), send the file directly
+            if (app.size <= CHUNK_SIZE) {
+                formData.append("app", app);
+            } else {
+                formData.append("uploadId", uploadId);
+                formData.append("totalChunks", totalChunks);
+            }
+
             formData.append("icon", icon);
 
             // Append images
             for (let i = 0; i < images.length; i++) {
-                if (i < 4) { // Limit to 4 images
+                if (i < 4) {
                     formData.append("images", images[i]);
                 }
             }
 
             const response = await api.post("app/upload", formData);
+            setUploadProgress(100);
 
             toast.success(response.data.message);
             navigate(-1);
-
 
         } catch (error) {
             console.log(error);
             toast.error(error.response?.data?.message || "An error occurred");
         } finally {
             setLoading(false);
+            setUploadProgress(0);
         }
-
-
     }
 
     const appCategories = [
@@ -214,7 +244,21 @@ const Upload = () => {
 
                     <p>{app?.name}</p>
 
-                    {isLoading ? <CircleLoader size={60} color="#cf70db" className='overflow-hidden' /> : <button type="submit">Upload</button>}
+                    {isLoading ? (
+                        <div className="progress_container">
+                            <CircleLoader size={60} color="#cf70db" className='overflow-hidden' />
+                            {uploadProgress > 0 && (
+                                <>
+                                    <div className="progress_bar_bg">
+                                        <div className="progress_bar_fill" style={{ width: `${uploadProgress}%` }}></div>
+                                    </div>
+                                    <p className="progress_text">{uploadProgress}% Uploaded</p>
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <button type="submit">Upload</button>
+                    )}
 
                 </form>
             </div>

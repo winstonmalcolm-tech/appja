@@ -41,19 +41,90 @@ const deleteFolder = (folderUrl) => {
     }
 }
 
+const chunkUpload = async (req, res, next) => {
+    try {
+        const { uploadId, chunkIndex } = req.body;
+        const chunkFile = req.files['app'] ? req.files['app'][0] : null;
+
+        if (!chunkFile || !uploadId || chunkIndex === undefined) {
+            res.status(400);
+            throw new Error("Missing chunk data");
+        }
+
+        const tempDir = path.join(__dirname, "..", "uploads", "temp", uploadId);
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const chunkPath = path.join(tempDir, `chunk-${chunkIndex}`);
+        fs.renameSync(chunkFile.path, chunkPath);
+
+        res.status(200).json({ message: `Chunk ${chunkIndex} uploaded` });
+    } catch (error) {
+        console.log(error);
+        next(error.message);
+    }
+}
+
 const upload = async (req, res, next) => {
 
     try {
-        const { app_name, app_category, app_description } = req.body;
+        const { app_name, app_category, app_description, uploadId, totalChunks } = req.body;
 
         // Files from multer
-        const appFile = req.files['app'] ? req.files['app'][0] : null;
+        let appFile = req.files['app'] ? req.files['app'][0] : null;
         const iconFile = req.files['icon'] ? req.files['icon'][0] : null;
         const imageFiles = req.files['images'] || [];
 
         if (!app_name || !app_category || !app_description) {
             res.status(400);
             throw new Error("Please enter all fields");
+        }
+
+        // Handle chunked app assembly if uploadId is provided
+        if (uploadId && totalChunks) {
+            const tempDir = path.join(__dirname, "..", "uploads", "temp", uploadId);
+            const finalAppPath = path.join(__dirname, "..", "uploads", "temp", `${uploadId}-final.apk`);
+
+            const writeStream = fs.createWriteStream(finalAppPath);
+
+            for (let i = 0; i < totalChunks; i++) {
+                const chunkPath = path.join(tempDir, `chunk-${i}`);
+                if (!fs.existsSync(chunkPath)) {
+                    throw new Error(`Missing chunk ${i}`);
+                }
+                const chunkBuffer = fs.readFileSync(chunkPath);
+                writeStream.write(chunkBuffer);
+                fs.unlinkSync(chunkPath); // Delete chunk after writing
+            }
+            writeStream.end();
+
+            // Wait for stream to finish
+            await new Promise((resolve) => writeStream.on('finish', resolve));
+
+            // Create a fake multer file object for the assembled app
+            const stats = fs.statSync(finalAppPath);
+
+            // Move final file to proper destination
+            const userId = req.id;
+            const sanitizedAppName = app_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const timestamp = Date.now();
+            const uniqueFolder = `${sanitizedAppName}-${timestamp}`;
+            const targetDir = path.join(__dirname, "..", "uploads", userId.toString(), uniqueFolder);
+
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+
+            const fileName = `app-${Date.now()}.apk`;
+            const finalPath = path.join(targetDir, fileName);
+            fs.renameSync(finalAppPath, finalPath);
+            fs.rmdirSync(tempDir); // Remove temp folder
+
+            appFile = {
+                path: path.relative(path.join(__dirname, ".."), finalPath),
+                size: stats.size
+            };
         }
 
         if (!appFile || !iconFile) {
@@ -143,6 +214,7 @@ const upload = async (req, res, next) => {
     }
 }
 
+
 const download = async (req, res, next) => {
     try {
         const { appId } = req.params;
@@ -195,7 +267,7 @@ const download = async (req, res, next) => {
 const updateApp = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { description, deletedImages, appUrl, iconUrl, appSize } = req.body;
+        const { description, deletedImages, appUrl, iconUrl, appSize, uploadId, totalChunks } = req.body;
 
         console.log("updateApp called for id:", id);
 
@@ -206,7 +278,56 @@ const updateApp = async (req, res, next) => {
 
 
         // Check for files
-        const appFile = req.files && req.files['app'] ? req.files['app'][0] : null;
+        let appFile = req.files && req.files['app'] ? req.files['app'][0] : null;
+
+        // Handle chunked app assembly if uploadId is provided
+        if (uploadId && totalChunks) {
+            const tempDir = path.join(__dirname, "..", "uploads", "temp", uploadId);
+            const finalAppPath = path.join(__dirname, "..", "uploads", "temp", `${uploadId}-final.apk`);
+
+            const writeStream = fs.createWriteStream(finalAppPath);
+
+            for (let i = 0; i < totalChunks; i++) {
+                const chunkPath = path.join(tempDir, `chunk-${i}`);
+                if (!fs.existsSync(chunkPath)) {
+                    throw new Error(`Missing chunk ${i}`);
+                }
+                const chunkBuffer = fs.readFileSync(chunkPath);
+                writeStream.write(chunkBuffer);
+                fs.unlinkSync(chunkPath);
+            }
+            writeStream.end();
+            await new Promise((resolve) => writeStream.on('finish', resolve));
+
+            const stats = fs.statSync(finalAppPath);
+
+            // For updates, we reuse the existing folder logic from the middleware if possible, 
+            // but since we are manually assembling, we need to find the old folder.
+            let targetDir;
+            if (currentApp && currentApp.app_url) {
+                const urlObj = new URL(currentApp.app_url);
+                const relativePath = urlObj.pathname.startsWith('/') ? urlObj.pathname.substring(1) : urlObj.pathname;
+                targetDir = path.join(__dirname, "..", path.dirname(relativePath));
+            } else {
+                // Fallback (should not happen for updates usually)
+                targetDir = path.join(__dirname, "..", "uploads", "updates", id);
+            }
+
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+
+            const fileName = `app-${Date.now()}.apk`;
+            const finalPath = path.join(targetDir, fileName);
+            fs.renameSync(finalAppPath, finalPath);
+            fs.rmdirSync(tempDir);
+
+            appFile = {
+                path: path.relative(path.join(__dirname, ".."), finalPath),
+                size: stats.size
+            };
+        }
+
         const iconFile = req.files && req.files['icon'] ? req.files['icon'][0] : null;
         // IMPORTANT: multer provides 'images' as array
         const imageFiles = req.files && req.files['images'] ? req.files['images'] : [];
@@ -402,6 +523,7 @@ const remove = async (req, res, next) => {
 
 module.exports = {
     upload,
+    chunkUpload,
     remove,
     getApp,
     download,

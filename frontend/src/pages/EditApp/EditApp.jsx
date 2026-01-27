@@ -20,6 +20,7 @@ const EditApp = () => {
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const navigate = useNavigate();
 
@@ -114,9 +115,41 @@ const EditApp = () => {
         try {
             e.preventDefault();
             setUpdating(true);
+            setUploadProgress(0);
+
+            const uploadId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+
+            // Handle APK update (Chunked)
+            let isChunked = false;
+            let totalChunks = 0;
+
+            if (apk && typeof apk !== "string") {
+                if (apk.size > CHUNK_SIZE) {
+                    isChunked = true;
+                    totalChunks = Math.ceil(apk.size / CHUNK_SIZE);
+
+                    for (let i = 0; i < totalChunks; i++) {
+                        const start = i * CHUNK_SIZE;
+                        const end = Math.min(apk.size, start + CHUNK_SIZE);
+                        const chunk = apk.slice(start, end);
+
+                        const chunkFormData = new FormData();
+                        chunkFormData.append("uploadId", uploadId);
+                        chunkFormData.append("chunkIndex", i);
+                        chunkFormData.append("app", chunk);
+
+                        await api.post("app/chunk", chunkFormData);
+
+                        // Progress calculation
+                        const progress = Math.round(((i + 1) / (totalChunks + 1)) * 100);
+                        setUploadProgress(progress);
+                    }
+                }
+            }
 
             const formData = new FormData();
-            formData.append("app_name", data.app.app_name); // Assuming name isn't editable here, or pass if it is
+            formData.append("app_name", data.app.app_name);
             formData.append("description", description);
 
             // Handle Icon update
@@ -124,19 +157,23 @@ const EditApp = () => {
                 formData.append("icon", updatedIcon.data);
             }
 
-            // Handle APK update
-            if (typeof (apk) != "string") {
-                formData.append("app", apk);
+            // Handle APK update signal
+            if (apk && typeof apk !== "string") {
+                if (isChunked) {
+                    formData.append("uploadId", uploadId);
+                    formData.append("totalChunks", totalChunks);
+                } else {
+                    formData.append("app", apk);
+                }
             }
 
-            // Handle Deleted Images (pass as JSON string)
+            // Handle Deleted Images
             if (deletedImages && deletedImages.length > 0) {
                 formData.append("deletedImages", JSON.stringify(deletedImages));
             }
 
             // Handle New Images
             if (newImages && newImages.length > 0) {
-                // newImages is Array
                 for (let i = 0; i < newImages.length; i++) {
                     formData.append("images", newImages[i]);
                 }
@@ -146,6 +183,7 @@ const EditApp = () => {
                 `app/${appId}`,
                 formData
             );
+            setUploadProgress(100);
 
             toast.info(response.data.message);
 
@@ -157,11 +195,11 @@ const EditApp = () => {
 
 
         } catch (error) {
-
             console.log(error);
-
+            toast.error(error.response?.data?.message || "An error occurred");
         } finally {
             setUpdating(false);
+            setUploadProgress(0);
         }
 
     }
@@ -224,8 +262,24 @@ const EditApp = () => {
                     {apk ? <h1 className='text-green-600 text-lg'>APK Set</h1> : <h1 className='text-red-500 text-lg'>Please select APK</h1>}
                 </div>
 
-                {updating ? <CircleLoader size={60} color="#cf70db" className='m-auto overflow-y-hidden' /> : <button type="submit" disabled={updating} className='h-[60px] w-full mt-10 bg-purple-500 border-none outline-none cursor-pointer transition duration-300 hover:bg-purple-600'>Update</button>}
-                {updating ? <CircleLoader size={60} color="#cf70db" className='m-auto overflow-y-hidden' /> : <button type="button" disabled={updating} onClick={deleteAppHandler} className='h-[60px] w-full mt-10 bg-red-500 border-none outline-none cursor-pointer transition duration-300 hover:bg-red-600'>Delete</button>}
+                {updating ? (
+                    <div className="progress_container">
+                        <CircleLoader size={60} color="#cf70db" className='m-auto overflow-y-hidden' />
+                        {uploadProgress > 0 && (
+                            <>
+                                <div className="progress_bar_bg">
+                                    <div className="progress_bar_fill" style={{ width: `${uploadProgress}%` }}></div>
+                                </div>
+                                <p className="progress_text">{uploadProgress}% Uploaded</p>
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        <button type="submit" disabled={updating} className='h-[60px] w-full mt-10 bg-purple-500 border-none outline-none cursor-pointer transition duration-300 hover:bg-purple-600'>Update</button>
+                        <button type="button" disabled={updating} onClick={deleteAppHandler} className='h-[60px] w-full mt-10 bg-red-500 border-none outline-none cursor-pointer transition duration-300 hover:bg-red-600'>Delete</button>
+                    </>
+                )}
 
             </form>
 
