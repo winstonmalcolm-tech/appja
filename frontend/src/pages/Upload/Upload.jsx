@@ -56,8 +56,8 @@ const Upload = () => {
             }
 
             const apkSize = byteToMegabyte(app.size);
-            if (apkSize > 149.5) {
-                toast.info("App size should not be greater than 150MB.");
+            if (apkSize > 300) {
+                toast.info("App size should not be greater than 300MB.");
                 return;
             }
 
